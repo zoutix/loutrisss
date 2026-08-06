@@ -1,0 +1,294 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#070a0f" />
+<title>LOUTRIS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  /* Critical first-paint rules only; the design system lives in the linked CSS files. */
+  html,body{height:100%;margin:0;background:#070a0f;overflow:hidden}
+  body{font-family:'DM Sans',system-ui,sans-serif;color:#edf3ff;-webkit-font-smoothing:antialiased}
+  .app{position:fixed;left:0;top:0;width:1920px;height:1080px;transform-origin:top left;
+    transform:translate(var(--app-x,0px),var(--app-y,0px)) scale(var(--app-scale,1))}
+</style>
+<link rel="stylesheet" href="css/app.css?v=royal-20260805b">
+<link rel="stylesheet" href="css/night-table.css?v=20260806a">
+</head>
+<body>
+
+<!-- Ambient blob backdrop -->
+<div class="bg">
+  <div class="bg-blob b1"></div>
+  <div class="bg-blob b2"></div>
+  <div class="bg-blob b3"></div>
+  <canvas id="particle-canvas"></canvas>
+</div>
+
+<div class="app">
+
+  <!-- ============ LEFT SIDEBAR ============ -->
+  <nav class="sidebar card">
+    <!-- Player identity -->
+    <div class="tb-profile" id="profile-card">
+      <div class="pf-ring"><div class="pf-in" id="profile-avatar">LX</div></div>
+      <div class="pf-info">
+        <div class="pf-row1">
+          <span class="pf-name" id="profile-name">PLAYER</span>
+          <span class="lvl-pill" id="profile-level">1</span>
+        </div>
+        <div class="pf-row1">
+          <span class="xp-track" id="profile-xp-bar"><i style="width:0%"></i></span>
+          <span class="xp-txt" id="profile-xp-text">0 / 650</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary navigation -->
+    <div class="nav-section-lbl">THE HOUSE</div>
+    <div class="nav">
+      <div class="nav-item active" id="nav-home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5L2 11h2v9h6v-6h4v6h6v-9h2z"/></svg>Lobby</div>
+      <div class="nav-item" id="nav-quests"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 5 5.6.8-4 3.9 1 5.5L12 14.8 6.9 17.2l1-5.5-4-3.9 5.6-.8z"/></svg>Rites<span class="lbl-count">4</span></div>
+      <div class="nav-item" id="nav-leaderboard"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 20h4V10H4zm6 0h4V4h-4zm6 0h4v-7h-4z"/></svg>Ladder</div>
+      <div class="nav-item" id="nav-statistics"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 21V11h4v10zm5 0V3h4v18zm5 0v-7h4v7z"/></svg>Records</div>
+      <div class="nav-item" id="nav-friends"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5z"/><circle cx="17" cy="9" r="2.8"/><path d="M15 20c0-2 2-3.5 4-3.5s4 1.5 4 3.5z"/></svg>Circle<span class="lbl-count"></span></div>
+    </div>
+
+    <div class="nav-footer">
+      <div class="nav-elo-badge"><span class="nav-elo-lbl">ELO</span><span class="nav-elo-val" id="nav-elo-val">0</span></div>
+      <div class="nav-item" id="nav-help"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2zm2.07-7.75l-.9.92A3.4 3.4 0 0013 13h-2v-.5a4 4 0 011.17-2.83l1.24-1.26a1.99 1.99 0 10-3.41-1.41h-2a4 4 0 017.07 2.25z"/></svg>Rules</div>
+    </div>
+  </nav>
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar card">
+    <!-- Brand -->
+    <div class="tb-brand" id="brand-logo" style="cursor:pointer">
+      <div class="brand-crown">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16l2.5-9 3.5 6 3.5-6 2.5 9H5z"/><circle cx="7.5" cy="5" r="1.4"/><circle cx="12" cy="3" r="1.6"/><circle cx="16.5" cy="5" r="1.4"/></svg>
+      </div>
+      <div class="brand-txt">
+        <div class="brand-name">LOUTRIS</div>
+        <div class="brand-tag">A HOUSE OF WORDS</div>
+      </div>
+    </div>
+
+    <!-- Currencies + actions -->
+    <div class="tb-right">
+      <div class="elo-pill" id="elo-display" title="Your rating">
+        <div class="elo-crown"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 16l3-9 4 6 4-6 3 9z"/></svg></div>
+        <div class="elo-info">
+          <div class="elo-label">ELO</div>
+          <div class="elo-value" id="elo-value">0</div>
+        </div>
+      </div>
+      <button class="icbtn" id="btn-notifs" title="Notifications"><span class="dot"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></button>
+      <button class="icbtn" id="btn-settings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></button>
+    </div>
+  </header>
+
+  <!-- ============ MAIN AREA ============ -->
+  <main class="main">
+
+    <!-- Lobby welcome -->
+    <section class="lobby-intro" aria-label="Lobby introduction">
+      <div class="intro-index">LT / 01</div>
+      <div class="intro-copy">
+        <h1>Choose your table.</h1>
+        <p>Three ways in. One word at a time.</p>
+      </div>
+      <div class="intro-rule"></div>
+      <div class="intro-note"><span>HOUSE STATUS</span><strong>OPEN TO PLAY</strong></div>
+    </section>
+
+    <!-- Mode cards -->
+    <div class="cardgrid">
+      <div class="mode classic" id="mode-classic">
+        <div class="m-head"><div class="m-tag">SOLO</div></div>
+        <div class="m-name">CLASSIC</div>
+        <div class="m-sub">The original table. No clock, no audience, just the next right word.</div>
+        <div class="m-cta">SIT DOWN<span class="m-arrow">›</span></div>
+      </div>
+
+      <div class="mode multi" id="mode-multi">
+        <div class="m-head"><div class="m-tag live">LIVE DUEL</div></div>
+        <div class="m-name">DUEL</div>
+        <div class="m-sub">One word. One rival. Make the better read.</div>
+        <div class="m-cta">FIND A RIVAL<span class="m-arrow">›</span></div>
+      </div>
+
+      <div class="mode daily" id="mode-daily">
+        <div class="m-head"><div class="m-tag">DAILY</div></div>
+        <div class="m-name">THE DAILY</div>
+        <div class="m-sub">A single word shared by everyone. Your streak starts here.</div>
+        <div class="m-cta">OPEN TODAY'S WORD<span class="m-arrow">›</span></div>
+      </div>
+    </div>
+
+    <!-- Daily word streak -->
+    <div class="card daily-streak" id="lp-daily-streak">
+      <div class="ds-head">
+        <div class="ds-badge"><span id="ds-num">0</span></div>
+        <div class="ds-labels">
+          <div class="ds-kicker">DAY STREAK</div>
+          <div class="ds-best">BEST <b id="ds-best">0</b></div>
+        </div>
+      </div>
+      <div class="ds-days" id="ds-days"></div>
+      <div class="ds-meta">
+        <span class="ds-meta-lbl" id="ds-meta-lbl">NEXT WORD</span>
+        <strong id="ds-timer">00:00:00</strong>
+      </div>
+      <button class="ds-cta" id="ds-cta">PLAY ›</button>
+    </div>
+
+    <!-- Missions + season event -->
+    <div class="bottomrow">
+      <div class="card" id="lp-missions" style="cursor:pointer">
+        <div class="chead"><div class="ctitle">DAILY <span class="acc">MISSIONS</span></div><div class="ccount" id="missions-count">0 / 4</div></div>
+        <div id="home-missions"></div>
+      </div>
+
+      <div class="card feature-locked feature-support" id="lp-support">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <div class="feature-copy">
+           <div class="feature-kicker">SUPPORT THE HOUSE</div>
+           <div class="feature-title">BECOME A PATREON</div>
+           <div class="feature-desc">Become a Patreon and support me.</div>
+           <span class="feature-cta" id="btn-patreon">JOIN ON PATREON ›</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============ RIGHT PANEL ============ -->
+  <aside class="rightpanel">
+    <!-- Leaderboard -->
+    <div class="card rp-card">
+       <div class="chead"><div class="ctitle">THE <span class="acc">LADDER</span></div></div>
+      <div class="rp-tabs">
+        <div class="rp-tab active" id="rp-lb-global">Global</div>
+        <div class="rp-tab" id="rp-lb-friends">Friends</div>
+        <div class="rp-tab" id="rp-lb-season">Season</div>
+      </div>
+      <div id="home-leaderboard"></div>
+      <button class="vflb" id="rp-leaderboard2">VIEW FULL LEADERBOARD</button>
+    </div>
+
+    <!-- Blue vs Red -->
+      <div class="card bvr-card" id="bvr-card">
+        <div class="bvr-head">
+          <div class="bvr-kicker-row">
+            <div class="bvr-kicker">PERMANENT TEAM WAR</div>
+            <div class="bvr-live-dot"></div>
+          </div>
+          <div class="bvr-title"><span class="bvr-dot blue"></span>BLUE<span class="bvr-vs">VS</span>RED<span class="bvr-dot red"></span></div>
+        </div>
+        <div class="bvr-teams">
+          <div class="bvr-team blue">
+            <div class="bvr-team-lbl">BLUE TEAM</div>
+            <div class="bvr-elo" id="bvr-blue-elo">—</div>
+            <div class="bvr-elo-unit">ELO</div>
+          </div>
+          <div class="bvr-team red">
+            <div class="bvr-team-lbl">RED TEAM</div>
+            <div class="bvr-elo" id="bvr-red-elo">—</div>
+            <div class="bvr-elo-unit">ELO</div>
+          </div>
+        </div>
+        <div class="bvr-bar-wrap">
+          <div class="bvr-bar"><div class="bvr-bar-blue" id="bvr-bar-blue"></div></div>
+          <div class="bvr-shares">
+            <span class="bvr-share blue" id="bvr-share-blue">—</span>
+            <span class="bvr-share red" id="bvr-share-red">—</span>
+          </div>
+        </div>
+        <div class="bvr-foot">
+          <div class="bvr-season-lbl" id="bvr-season">SEASON 1</div>
+          <div class="bvr-countdown" id="bvr-countdown">ENDS IN — DAYS</div>
+        </div>
+        <div class="bvr-my" id="bvr-my">AWAITING TEAM…</div>
+      </div>
+
+    <!-- Player stats -->
+    <div class="card rp-card" id="rp-card">
+       <div class="chead"><div class="ctitle">YOUR <span class="acc">RECORD</span></div><div class="clink" id="rp-stats">OPEN ›</div></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="s-lbl">Win Rate</div><div class="s-val" id="st-winrate">0%</div></div>
+        <div class="stat"><div class="s-lbl">Current Streak</div><div class="s-val" id="st-streak">0</div></div>
+        <div class="stat"><div class="s-lbl">Best Streak</div><div class="s-val" id="st-best">0</div></div>
+        <div class="stat"><div class="s-lbl">Matches</div><div class="s-val" id="st-matches">0</div></div>
+        <div class="stat"><div class="s-lbl">Avg Guesses</div><div class="s-val" id="st-avg">0</div></div>
+        <div class="stat"><div class="s-lbl">Perfect Solves</div><div class="s-val" id="st-perfect">0</div></div>
+      </div>
+      <div class="stats-lock" id="stats-lock">
+        <div class="lock-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+        </div>
+        <div class="lock-title">STATS LOCKED</div>
+        <div class="lock-msg" id="lock-msg">Play 10 games to unlock</div>
+        <div class="lock-progress"><div class="lock-bar" id="lock-bar"></div></div>
+        <div class="lock-count" id="lock-count">0 / 10</div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Overlay layers (home shell preserved underneath) -->
+<div id="screen-layer"></div>
+<div id="modal-layer"></div>
+<div id="toast-layer"></div>
+<div id="fx-layer"></div>
+<div id="auth-layer"></div>
+
+<!-- Scripts (classic, file://-safe; ordered by dependency) -->
+<script src="js/data.js?v=night-table-20260805b"></script>
+<script src="js/audio.js?v=royal-20260717a"></script>
+<script src="js/store.js?v=teamwar-20260805e"></script>
+<script src="js/game.js?v=duel7-20260806b"></script>
+<script src="js/net.js?v=royal-20260721a"></script>
+<script src="js/ui.js?v=night-table-20260805a"></script>
+<script src="js/screens/auth.js?v=teamwar-20260805b"></script>
+<script src="js/screens/match.js?v=duel7-20260806c"></script>
+<script src="js/screens/play.js?v=night-table-20260731a"></script>
+<script src="js/screens/meta.js?v=teamwar-20260805e"></script>
+<script src="js/screens/meta2.js?v=night-table-20260731a"></script>
+<script src="js/particles.js?v=night-table-20260731a"></script>
+<script src="js/app.js?v=teamwar-20260805g"></script>
+<script>
+  /* Fit the desktop game canvas; the stylesheet switches to a native mobile layout. */
+  (function () {
+    var BASE_W = 1920, BASE_H = 1080;
+    var app = document.querySelector('.app');
+    function fit() {
+      if (!app) return;
+      var s = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
+      app.style.setProperty('--app-scale', String(s));
+      app.style.setProperty('--app-x', ((window.innerWidth - BASE_W * s) / 2) + 'px');
+      app.style.setProperty('--app-y', ((window.innerHeight - BASE_H * s) / 2) + 'px');
+    }
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('load', fit);
+  })();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,9 @@
+# Runtime artifacts
+server.log
+server.err
+server.err2
+server.out
+
+# OS / editor
+Thumbs.db
+.DS_Store
