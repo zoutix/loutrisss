@@ -1,0 +1,15 @@
+- Prefers a thorough, repository-wide audit before making changes, with architecture and trust-boundary mapping completed first. Confidence: 0.98
+- Expects confirmed bugs and security vulnerabilities to be fixed directly in the code, not merely reported, with priority given to critical and high-severity issues. Confidence: 0.98
+- Prefers targeted, minimal-risk changes that preserve working functionality and avoid superficial rewrites or cosmetic refactors. Confidence: 0.98
+- Requires the server/database to be the source of truth for authentication, authorization, competitive game state, rankings, rewards, currency, inventory, and other sensitive mutations; client-side checks are not considered security. Confidence: 0.99
+- Values defense in depth for sensitive operations, including server-side validation, atomic transactions, unique constraints, idempotency keys, replay protection, and race-condition handling. Confidence: 0.98
+- Expects changes to be tested comprehensively, including type/lint/build/unit/integration/security/dependency checks where available, plus adversarial tests for concurrent, replayed, malformed, and unauthorized requests. Confidence: 0.99
+- Prefers reproducible project tooling and quality gates when absent, such as scripts, tests, schema-contract checks, CI-friendly commands, and documented setup. Confidence: 0.94
+- Wants validation reports to distinguish clearly between checks that actually passed and checks unavailable because required tools or services are missing; never claim unrun tests passed. Confidence: 0.99
+- Prefers security fixes appropriate to the actual technology stack and avoids adding unnecessary libraries or relying on fake/bypassable security controls. Confidence: 0.96
+- Prefers preserving offline/local functionality while explicitly separating it from authoritative online progression and competitive state. Confidence: 0.93
+- Values detailed, structured final reports covering findings, severity, locations, fixes, verification, remaining risks, and files changed. Confidence: 0.97
+- Prefers polished, premium-looking game UI with mobile-first responsive layouts that keep the complete play surface visible without scrolling; dislikes redundant helper copy and wants touch controls positioned with deliberate spacing. Confidence: 0.96
+- Prefers responsive gameplay layout fixes to behave consistently across every game mode, using shared layout rules rather than mode-specific exceptions. Confidence: 0.91
+- Expects visual UI fixes to be checked against the supplied screenshots, with holistic correction of alignment, centering, hierarchy, and iconography rather than relying only on automated regression checks. Confidence: 0.95
+- Prefers iterative, small pixel-level spacing adjustments in response to visual feedback, while leaving unrelated layout geometry unchanged. Confidence: 0.93

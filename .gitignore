@@ -1,0 +1,24 @@
+# Runtime artifacts
+server.log
+server.err
+server.err2
+server.out
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local state
+.supabase/
+
+# Test/build artifacts
+coverage/
+playwright-report/
+test-results/
+dist/
+build/
+
+# OS / editor
+Thumbs.db
+.DS_Store
