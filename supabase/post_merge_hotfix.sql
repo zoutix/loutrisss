@@ -4,6 +4,91 @@
 
 begin;
 
+-- Re-define ranked creation so stale matches are settled through the same
+-- authoritative settlement path instead of being silently marked as draws.
+-- The match row is locked before changing it, so a concurrent guess cannot
+-- race the expiry path.
+create or replace function public.start_ranked_match(p_opponent uuid,p_length smallint default 5)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public
+as $$
+declare
+  v_user uuid:=auth.uid();
+  v_match public.match_sessions;
+  v_answer text;
+  v_expired_id uuid;
+begin
+  if v_user is null then raise exception using errcode='28000',message='AUTH_REQUIRED'; end if;
+  if p_opponent is null or p_opponent=v_user then raise exception using errcode='22023',message='INVALID_OPPONENT'; end if;
+  if p_length not between 4 and 6 then raise exception using errcode='22023',message='INVALID_LENGTH'; end if;
+  if not exists(select 1 from auth.users where id=p_opponent) then raise exception using errcode='P0002',message='OPPONENT_NOT_FOUND'; end if;
+
+  -- Lock each expired match before expiring and settling it. This prevents a
+  -- concurrent submit/forfeit from racing the expiry decision.
+  for v_expired_id in
+    select m.id
+      from public.match_sessions m
+     where m.active=true
+       and m.ranked=true
+       and m.last_action_at<now()-interval '5 minutes'
+       and exists(
+         select 1
+           from public.match_participants p
+          where p.match_id=m.id
+            and p.active=true
+            and p.user_id in(v_user,p_opponent)
+       )
+     for update
+  loop
+    update public.match_sessions
+       set active=false,status='draw',ended_at=now(),last_action_at=now()
+     where id=v_expired_id;
+
+    -- IMPORTANT: use the canonical settlement path so draws update stats and
+    -- create match_settlements, rather than leaving an un-settled match.
+    perform public.settle_ranked_match(v_expired_id,null,'draw');
+  end loop;
+
+  if exists(select 1 from public.match_participants where user_id=v_user and active=true and ranked=true) then
+    raise exception using errcode='55000',message='ACTIVE_MATCH_EXISTS';
+  end if;
+  if exists(select 1 from public.match_participants where user_id=p_opponent and active=true and ranked=true) then
+    raise exception using errcode='55000',message='OPPONENT_BUSY';
+  end if;
+
+  select word into v_answer
+    from public.game_words
+   where length=p_length and is_answer
+   order by gen_random_uuid()
+   limit 1;
+  if v_answer is null then raise exception using errcode='P0001',message='WORD_POOL_UNAVAILABLE'; end if;
+
+  insert into public.match_sessions(mode,ranked,length,answer,current_player,active)
+  values('ranked',true,p_length,v_answer,v_user,true)
+  returning * into v_match;
+
+  insert into public.match_participants(match_id,user_id,player_no,active,ranked)
+  values(v_match.id,v_user,1,true,true),(v_match.id,p_opponent,2,true,true);
+
+  return jsonb_build_object(
+    'id',v_match.id,
+    'mode','ranked',
+    'ranked',true,
+    'length',v_match.length,
+    'status',v_match.status,
+    'current_player',v_match.current_player,
+    'turn_no',v_match.turn_no,
+    'started_at',v_match.started_at
+  );
+exception when unique_violation then
+  return jsonb_build_object('ok',false,'error','ACTIVE_MATCH_EXISTS');
+end;
+$$;
+revoke all on function public.start_ranked_match(uuid,smallint) from public,anon,authenticated;
+grant execute on function public.start_ranked_match(uuid,smallint) to authenticated;
+
 -- Settlement must re-check idempotency AFTER taking the deterministic player
 -- locks. Otherwise two concurrent callers can both observe no settlement,
 -- then both award ELO before the second INSERT hits ON CONFLICT.
