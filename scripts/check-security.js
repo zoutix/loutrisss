@@ -55,4 +55,16 @@ if (!/perform 1 from public\.profiles where id=v_user for update/.test(hotfix)) 
   console.error("Cosmetic purchase must lock the profile before reading ownership/balance");
   process.exit(1);
 }
+if (!/create or replace function public\.start_ranked_match\(p_opponent uuid,p_length smallint default 5\)/.test(hotfix)) {
+  console.error("Post-merge hotfix must override ranked creation to settle stale matches");
+  process.exit(1);
+}
+if (!/perform public\.settle_ranked_match\(v_expired_id,null,'draw'\)/.test(hotfix)) {
+  console.error("Stale ranked matches must use the canonical settlement path");
+  process.exit(1);
+}
+if (!/grant execute on function public\.start_ranked_match\(uuid,smallint\) to authenticated/.test(hotfix)) {
+  console.error("Ranked creation RPC must remain authenticated-only after the hotfix override");
+  process.exit(1);
+}
 console.log("Security source checks OK");
