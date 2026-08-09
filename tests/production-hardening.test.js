@@ -8,6 +8,7 @@ const path = require("node:path");
 const root = path.join(__dirname, "..");
 const migration = fs.readFileSync(path.join(root, "supabase", "production_hardening_final.sql"), "utf8");
 const hotfix = fs.readFileSync(path.join(root, "supabase", "post_merge_hotfix.sql"), "utf8");
+const settingsHardening = fs.readFileSync(path.join(root, "supabase", "profile_settings_hardening.sql"), "utf8");
 const supabase = fs.readFileSync(path.join(root, "js", "supabase.js"), "utf8");
 const match = fs.readFileSync(path.join(root, "js", "screens", "match.js"), "utf8");
 
@@ -58,4 +59,13 @@ test("cosmetic purchases use a server-owned catalog and authenticated RPC", () =
   assertContains(hotfix, /grant execute on function public\.purchase_cosmetic\(text\) to authenticated/);
   assertContains(migration, /create table if not exists public\.shop_catalog/);
   assertContains(migration, /currency text not null check\(currency in\('coins','gems'\)\)/);
+});
+
+test("profile settings are bounded and object-only", () => {
+  assertContains(settingsHardening, /char_length\(v_display_name\) > 64/);
+  assertContains(settingsHardening, /char_length\(v_avatar\) > 512/);
+  assertContains(settingsHardening, /jsonb_typeof\(v_settings\) <> 'object'/);
+  assertContains(settingsHardening, /octet_length\(v_settings::text\) > 16384/);
+  assertContains(settingsHardening, /grant execute on function public\.save_profile_settings\(text, text, text, text, jsonb\) to authenticated/);
+  assertContains(settingsHardening, /revoke execute on function public\.save_profile_settings\(text, text, text, text, jsonb\) from public/);
 });
