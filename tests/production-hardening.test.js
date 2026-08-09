@@ -22,6 +22,16 @@ test("ranked settlement rechecks idempotency after locks", () => {
   assert.ok(check > lock, "settlement check must happen after the profile lock");
 });
 
+test("stale ranked matches are settled through the canonical draw path", () => {
+  assertContains(hotfix, /create or replace function public\.start_ranked_match\(p_opponent uuid,p_length smallint default 5\)/);
+  const expiry = hotfix.indexOf("for v_expired_id in");
+  const settle = hotfix.indexOf("perform public.settle_ranked_match(v_expired_id,null,'draw')", expiry);
+  assert.ok(expiry >= 0, "ranked creation must scan stale matches");
+  assert.ok(settle > expiry, "every stale match must pass through canonical settlement");
+  assertContains(hotfix, /for update\s*\n  loop/);
+  assertContains(hotfix, /m\.last_action_at<now\(\)-interval '5 minutes'/);
+});
+
 test("ranked active-match constraint is immutable and server-owned", () => {
   assertContains(migration, /create unique index one_active_ranked_match_per_player/);
   assertContains(migration, /where active=true and ranked=true/);
