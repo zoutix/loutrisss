@@ -1,0 +1,41 @@
+/*
+  Static-host header configuration (Netlify/Cloudflare Pages compatible).
+  Keep CSP compatible with the current classic-script architecture; tighten
+  further after migrating inline scripts/styles to external files/nonces.
+*/
+/*
+  Note: some hosts ignore this file. Configure the same headers at the CDN
+  or hosting layer if your provider does not support _headers.
+*/
+/*
+/*
+  This file intentionally uses a conservative CSP that still permits the
+  current app's inline bootstrap code and Supabase/CDN dependencies.
+*/
+
+/*
+  The actual rules below are interpreted by hosts that support _headers.
+*/
+
+/*
+  Header values:
+*/
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:
+*/
+
+/*
+  If your host supports header blocks, use this exact block:
+*/
+/*
+  :
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: strict-origin-when-cross-origin
+    Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+    X-Frame-Options: DENY
+    Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:
+*/
