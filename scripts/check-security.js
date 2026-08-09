@@ -8,7 +8,8 @@ const files = [
   path.join(root, "js", "supabase.js"),
   path.join(root, "js", "screens", "match.js"),
   path.join(root, "supabase", "schema.sql"),
-  path.join(root, "supabase", "production_hardening_final.sql")
+  path.join(root, "supabase", "production_hardening_final.sql"),
+  path.join(root, "supabase", "post_merge_hotfix.sql")
 ];
 const text = files.map((file) => fs.readFileSync(file, "utf8")).join("\n");
 const forbidden = [
@@ -25,6 +26,7 @@ for (const check of forbidden) {
 }
 
 const migration = fs.readFileSync(path.join(root, "supabase", "production_hardening_final.sql"), "utf8");
+const hotfix = fs.readFileSync(path.join(root, "supabase", "post_merge_hotfix.sql"), "utf8");
 const required = [
   "create unique index one_active_ranked_match_per_player",
   "create or replace function public.settle_ranked_match",
@@ -41,6 +43,16 @@ if (missing.length) {
 }
 if (/where\s+match_id\s+in\s*\(\s*select\s+id\s+from\s+public\.match_sessions/i.test(migration)) {
   console.error("Hardening migration contains a non-immutable partial-index predicate");
+  process.exit(1);
+}
+const lock = hotfix.indexOf("order by id\n   for update");
+const settlementCheck = hotfix.indexOf("exists(select 1 from public.match_settlements", lock);
+if (lock < 0 || settlementCheck < lock) {
+  console.error("Settlement idempotency check must occur after the deterministic profile lock");
+  process.exit(1);
+}
+if (!/perform 1 from public\.profiles where id=v_user for update/.test(hotfix)) {
+  console.error("Cosmetic purchase must lock the profile before reading ownership/balance");
   process.exit(1);
 }
 console.log("Security source checks OK");
